@@ -27,6 +27,7 @@ local sdl = ffi.os == "Windows" and ffi.load("SDL2") or ffi.C
 -- Allow background input for joystick events..
 sdl.SDL_SetHint("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1")
 
+local BOXX_NAME = "Arduino Leonardo"
 local BOXX_JOYSTICK
 
 function love.load()
@@ -35,11 +36,9 @@ function love.load()
 	local joysticks = love.joystick.getJoysticks()
 	for i, joystick in ipairs(joysticks) do
 		local name = joystick:getName()
-		notification.coloredMessage(name)
-		if name == "Arduino Leonardo" then
+		if name == BOXX_NAME then
 			BOXX_JOYSTICK = joystick
 			notification.coloredMessage(("Found B0XX: %s"):format(name))
-			notification.coloredMessage(("Axis count: %d"):format(joystick:getAxisCount()))
 		end
 	end
 end
@@ -68,7 +67,7 @@ local BUTTONS = {
 
 local BUTTON_PRESSED = {}
 
-local BACKGROUND = newImage("textures/buttons/bg-t1.png")
+local BACKGROUND = newImage("textures/buttons/bg-full-t.png")
 
 local BUTTON_TEXTURES = {
 	A = newImage("textures/buttons/A.png"),
@@ -103,14 +102,14 @@ function love.update(dt)
 end
 
 function love.joystickadded(joystick)
-	if joystick:getName() == "Arduino Leonardo" then
+	if joystick:getName() == BOXX_NAME then
 		BOXX_JOYSTICK = joystick
 		notification.coloredMessage("B0XX plugged in")
 	end
 end
 
 function love.joystickremoved(joystick)
-	if joystick:getName() == "Arduino Leonardo" then
+	if joystick:getName() == BOXX_NAME then
 		BOXX_JOYSTICK = nil
 		notification.coloredMessage("B0XX unplugged")
 	end
@@ -123,7 +122,7 @@ function love.joystickpressed(joystick, button)
 	end
 end
 
-function love.joystickreleased( joystick, button )
+function love.joystickreleased(joystick, button)
 	local map = BUTTON_MAPPING[button]
 	if map then
 		BUTTON_PRESSED[map] = false
@@ -140,6 +139,8 @@ function love.draw()
 end
 
 local abs = math.abs
+
+local debugAxis = graphics.newFont("fonts/melee-bold.otf", 12)
 
 function love.drawControllerOverlay()
 	local w, h = graphics.getPixelDimensions()
@@ -171,17 +172,22 @@ function love.drawControllerOverlay()
 	end
 
 	if JOY_Y < 0 then
-		JOY_Y_NAME = "UP"
-	elseif JOY_Y > 0 then
 		JOY_Y_NAME = "DOWN"
+	elseif JOY_Y > 0 then
+		JOY_Y_NAME = "UP"
 	end
 
+	graphics.setFont(debugAxis)
+	graphics.setColor(255, 255, 255, 255)
+	graphics.print(("JOY_X: %f"):format(JOY_X), 4, 256 - 4 - 12)
+	graphics.print(("JOY_Y: %f"):format(JOY_Y), 4, 256 - 4 - 24)
+
 	-- I have no idea if this is correct.. but it's my best guess for now
-	if (JOY_X ~= 0 and abs(JOY_X) < 0.7375) or (JOY_Y ~= 0 and abs(JOY_Y) < 0.2875) then
+	if (JOY_X ~= 0 and abs(JOY_X) < 0.6) or (JOY_Y ~= 0 and abs(JOY_Y) < 0.25) then
 		graphics.easyDraw(MOD_TEXTURES["MOD_X"], 0, 0, 0, w, h)
 	end
 
-	if (JOY_X ~= 0 and abs(JOY_X) < 0.2875) or (JOY_Y ~= 0 and abs(JOY_Y) < 0.7375) then
+	if (JOY_X ~= 0 and abs(JOY_X) < 0.25) or (JOY_Y ~= 0 and abs(JOY_Y) < 0.6) then
 		graphics.easyDraw(MOD_TEXTURES["MOD_Y"], 0, 0, 0, w, h)
 	end
 
@@ -202,9 +208,9 @@ function love.drawControllerOverlay()
 	end
 
 	if C_Y < 0 then
-		C_Y_NAME = "C_UP"
-	elseif C_Y > 0 then
 		C_Y_NAME = "C_DOWN"
+	elseif C_Y > 0 then
+		C_Y_NAME = "C_UP"
 	end
 
 	if ANALOG_TEXTURES[C_X_NAME] then
