@@ -8,8 +8,8 @@
 
 [Setup]
 AppName=M'B0XX
-AppId=AppName
-AppVersion=0.8
+AppId=M'B0XX
+AppVersion=0.1
 WizardStyle=modern
 DefaultDirName={autopf}\M'B0XX
 DefaultGroupName=M'B0XX
